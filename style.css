@@ -1,0 +1,238 @@
+/* style.css — Disney+ landing + formulaires (final) */
+
+/* 1) Reset basique */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* 2) Corps de page */
+/* - Landing : fond noir
+   - Formulaires (body.page-form) : fond bleu nuit */
+body {
+  font-family: Arial, sans-serif;
+  background-color: #000;
+  color: #fff;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+body.page-form {
+  background-color: #032541;
+}
+
+/* 3) HEADER */
+/* Landing : transparent & absolute */
+body:not(.page-form) header {
+  background: transparent;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  padding: 20px;
+  text-align: center;
+  z-index: 2;
+}
+/* Formulaires : bleu foncé */
+body.page-form header {
+  background: #040714;
+  padding: 20px;
+  text-align: center;
+}
+header .logo {
+  width: 180px;
+}
+
+/* 4) HERO (landing) */
+.hero {
+  position: relative;
+  height: 100vh; /* couvre tout l’écran */
+  background: url("Images/compose.png") center/cover no-repeat;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.hero .overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+}
+.hero .content {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  padding: 0 20px;
+  max-width: 800px;
+}
+.hero h1 {
+  font-size: 2rem;
+  font-weight: bold;
+  margin-bottom: 20px;
+  color: #fff;
+}
+/* Aucun logo central sur landing */
+.center-logo {
+  display: none;
+}
+
+/* 5) Bouton landing */
+.btn {
+  display: inline-block;
+  padding: 16px 40px;
+  background: #0063e5;
+  color: #fff;
+  font-weight: bold;
+  border-radius: 4px;
+  text-decoration: none;
+  transition: background 0.3s;
+  margin-bottom: 20px;
+}
+.btn:hover {
+  background: #0483ee;
+}
+
+/* 6) Texte landing */
+.subtext {
+  font-size: 1rem;
+  line-height: 1.4;
+  opacity: 0.9;
+  margin-bottom: 8px;
+}
+.footnote {
+  font-size: 0.75rem;
+  color: #ccc;
+}
+
+/* 7) Carte blanche pour formulaires */
+.page-form main {
+  background: #fff;
+  color: #000;
+  max-width: 400px;
+  width: 90%;
+  margin: 60px auto;
+  padding: 30px 20px;
+  border-radius: 8px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+  text-align: center;
+  position: relative;
+  z-index: 1;
+}
+
+/* 8) Logo MyDisney au-dessus du form */
+.page-form .center-logo {
+  display: block;
+  width: 160px;
+  margin: 0 auto 24px;
+}
+
+/* 9) Titres & paragraphes form */
+/* Titres uniformément noirs */
+.page-form h1 {
+  font-size: 1.6rem;
+  color: #000;
+  margin-bottom: 16px;
+}
+.page-form p {
+  font-size: 0.95rem;
+  color: #333;
+  margin-bottom: 24px;
+  line-height: 1.4;
+}
+
+/* 10) Champs & boutons */
+.page-form input,
+.page-form select {
+  width: 100%;
+  padding: 14px;
+  margin-bottom: 16px;
+  font-size: 1rem;
+  border: none;
+  border-radius: 6px;
+  background: #f0f0f0;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+  box-sizing: border-box;
+}
+.page-form button {
+  width: 100%;
+  padding: 14px;
+  background: #000;
+  color: #fff;
+  font-weight: bold;
+  font-size: 1rem;
+  border: none;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background 0.3s;
+  margin-top: 8px;
+}
+.page-form button:hover {
+  background: #333;
+}
+
+/* 11) Note & logos partenaires */
+.page-form .footer-note {
+  margin-top: 12px;
+  font-size: 0.8rem;
+  line-height: 1.3;
+  text-align: center;
+}
+.page-form .footer-note strong {
+  display: block;
+  margin-bottom: 4px;
+}
+.page-form .logos-container {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 8px;
+}
+.page-form .logos-container img {
+  height: 14px;
+  opacity: 0.6;
+  filter: grayscale(100%);
+}
+
+/* 12) Spinner overlay */
+#spinnerOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.8);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+#spinnerOverlay .spinner {
+  width: 70px;
+  height: 70px;
+  border: 8px solid rgba(255,255,255,0.1);
+  border-top: 8px solid #00bfff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* 13) FOOTER commun */
+footer {
+  background: #040714;
+  padding: 20px;
+  text-align: center;
+  font-size: 0.8rem;
+  color: rgba(255,255,255,0.6);
+}
+
+/* 14) Responsive */
+@media (max-width: 768px) {
+  .hero h1 { font-size: 1.5rem; }
+  .btn { padding: 14px 32px; font-size: 0.9rem; }
+  .center-logo { width: 140px; }
+}
+@media (max-width: 480px) {
+  .hero h1 { font-size: 1.2rem; }
+  .btn { padding: 12px 24px; font-size: 0.85rem; }
+  .subtext { font-size: 0.9rem; }
+  .footnote { font-size: 0.7rem; }
+  .page-form main { margin: 30px auto; padding: 20px; }
+}
